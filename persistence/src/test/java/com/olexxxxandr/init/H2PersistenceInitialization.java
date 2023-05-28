@@ -1,6 +1,6 @@
 package com.olexxxxandr.init;
 
-import com.olexxxxandr.util.ConnectionManager;
+import com.olexxxxandr.carrepair.persistence.util.ConnectionManager;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
@@ -16,19 +16,16 @@ public final class H2PersistenceInitialization {
     public static void run(Connection connection) {
         try (Statement statement = connection.createStatement()) {
             statement.execute(getSQL(Path.of("h2", "migrations", "ddl.sql").toString()));
-            statement.executeUpdate(getSQL(Path.of("h2", "migrations", "dml.sql").toString()));
+            statement.executeUpdate(
+                    getSQL(Path.of("h2", "migrations", "dml.sql").toString()));
         } catch (SQLException throwables) {
             throw new RuntimeException(throwables);
         }
     }
 
     private static String getSQL(final String resourceName) {
-        return new BufferedReader(
-                        new InputStreamReader(
-                                Objects.requireNonNull(
-                                        ConnectionManager.class
-                                                .getClassLoader()
-                                                .getResourceAsStream(resourceName))))
+        return new BufferedReader(new InputStreamReader(Objects.requireNonNull(
+                        ConnectionManager.class.getClassLoader().getResourceAsStream(resourceName))))
                 .lines()
                 .collect(Collectors.joining("\n"));
     }

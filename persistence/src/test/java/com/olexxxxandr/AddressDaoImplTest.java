@@ -2,12 +2,12 @@ package com.olexxxxandr;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.olexxxxandr.dao.AddressDao;
-import com.olexxxxandr.entity.impl.AddressEntity;
-import com.olexxxxandr.exception.persistance.PersistenceException;
-import com.olexxxxandr.factory.DaoFactory;
+import com.olexxxxandr.carrepair.persistence.DaoFactory;
+import com.olexxxxandr.carrepair.persistence.dao.AddressDao;
+import com.olexxxxandr.carrepair.persistence.entity.impl.AddressEntity;
+import com.olexxxxandr.carrepair.persistence.exception.persistance.PersistenceException;
+import com.olexxxxandr.carrepair.persistence.util.ConnectionManager;
 import com.olexxxxandr.init.H2PersistenceInitialization;
-import com.olexxxxandr.util.ConnectionManager;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -24,8 +24,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 class AddressDaoImplTest {
-    static MockedStatic<ConnectionManager> connectionManager =
-            Mockito.mockStatic(ConnectionManager.class);
+    static MockedStatic<ConnectionManager> connectionManager = Mockito.mockStatic(ConnectionManager.class);
     AddressDao addressDao;
 
     static {
@@ -44,8 +43,7 @@ class AddressDaoImplTest {
     private static Connection getConnection() {
         try {
             // INIT=RUNSCRIPT FROM 'classpath:init.sql' - можна навіть таке використовувати
-            return DriverManager.getConnection(
-                    "jdbc:h2:file:./src/test/resources/db/test;DB_CLOSE_ON_EXIT=FALSE");
+            return DriverManager.getConnection("jdbc:h2:file:./src/test/resources/db/test;DB_CLOSE_ON_EXIT=FALSE");
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -66,25 +64,21 @@ class AddressDaoImplTest {
     void findOneById_AddressEntityExists_ReturnsAddressEntity() {
         // Given
         UUID addressId = UUID.fromString("926b1ede-0427-4daa-a603-22fcd489d559");
-        AddressEntity expectedAddressEntity =
-                AddressEntity.builder()
-                        .id(addressId)
-                        .country("Україна")
-                        .region("Вінницька область")
-                        .city("Вінниця")
-                        .street("вул. Соборна")
-                        .home("25")
-                        .build();
+        AddressEntity expectedAddressEntity = AddressEntity.builder()
+                .id(addressId)
+                .country("Україна")
+                .region("Вінницька область")
+                .city("Вінниця")
+                .street("вул. Соборна")
+                .home("25")
+                .build();
 
         // When
         AddressEntity actualAddressEntity = addressDao.findOneById(addressId).orElse(null);
 
         // Then
         assertNotNull(actualAddressEntity, "The found AddressEntity object is not null");
-        assertEquals(
-                expectedAddressEntity,
-                actualAddressEntity,
-                "The searched object is equal to the found one");
+        assertEquals(expectedAddressEntity, actualAddressEntity, "The searched object is equal to the found one");
     }
 
     @Test
@@ -96,9 +90,7 @@ class AddressDaoImplTest {
         Optional<AddressEntity> optionalAddressEntity = addressDao.findOneById(id);
 
         // Then
-        assertTrue(
-                optionalAddressEntity.isEmpty(),
-                "Empty optional if the address with this id does not exist");
+        assertTrue(optionalAddressEntity.isEmpty(), "Empty optional if the address with this id does not exist");
     }
 
     @Test
@@ -119,21 +111,19 @@ class AddressDaoImplTest {
     @Test
     void save_InsertNewAddressEntity_ReturnsAddressEntityWithGeneratedId() {
         // Given
-        AddressEntity addressEntity =
-                AddressEntity.builder()
-                        .id(null)
-                        .country("Україна")
-                        .region("Закарпаття")
-                        .city("Мукачево")
-                        .street("вул. Головна")
-                        .home("1")
-                        .build();
+        AddressEntity addressEntity = AddressEntity.builder()
+                .id(null)
+                .country("Україна")
+                .region("Закарпаття")
+                .city("Мукачево")
+                .street("вул. Головна")
+                .home("1")
+                .build();
 
         // When
         AddressEntity savedAddressEntity = addressDao.save(addressEntity);
         UUID id = savedAddressEntity.getId();
-        Optional<AddressEntity> optionalFoundedAddressEntity =
-                addressDao.findOneById(id, getConnection());
+        Optional<AddressEntity> optionalFoundedAddressEntity = addressDao.findOneById(id, getConnection());
 
         // Then
         assertNotNull(savedAddressEntity.getId());
@@ -145,15 +135,14 @@ class AddressDaoImplTest {
     void save_UpdateExistAddressEntity_ReturnsAddressEntity() {
         // Given
         UUID addressId = UUID.fromString("926b1ede-0427-4daa-a603-22fcd489d559");
-        AddressEntity addressEntityToUpdate =
-                AddressEntity.builder()
-                        .id(addressId)
-                        .country("Україна")
-                        .region("Закарпатська область")
-                        .city("Мукачево")
-                        .street("вул. Головна")
-                        .home("1")
-                        .build();
+        AddressEntity addressEntityToUpdate = AddressEntity.builder()
+                .id(addressId)
+                .country("Україна")
+                .region("Закарпатська область")
+                .city("Мукачево")
+                .street("вул. Головна")
+                .home("1")
+                .build();
 
         // When
         addressDao.save(addressEntityToUpdate);
@@ -168,25 +157,21 @@ class AddressDaoImplTest {
     void save_UpdateNotExistAddressEntity_DoNothing() {
         // Given
         UUID addressId = UUID.randomUUID();
-        AddressEntity notExistAddressEntityToUpdate =
-                AddressEntity.builder()
-                        .id(addressId)
-                        .country("Україна")
-                        .region("Закарпатська область")
-                        .city("Мукачево")
-                        .street("вул. Головна")
-                        .home("1")
-                        .build();
+        AddressEntity notExistAddressEntityToUpdate = AddressEntity.builder()
+                .id(addressId)
+                .country("Україна")
+                .region("Закарпатська область")
+                .city("Мукачево")
+                .street("вул. Головна")
+                .home("1")
+                .build();
 
         // When
         addressDao.save(notExistAddressEntityToUpdate);
-        Optional<AddressEntity> optionalAddressEntity =
-                addressDao.findOneById(addressId, getConnection());
+        Optional<AddressEntity> optionalAddressEntity = addressDao.findOneById(addressId, getConnection());
 
         // Then
-        assertTrue(
-                optionalAddressEntity.isEmpty(),
-                "The updated address object is not found in the database");
+        assertTrue(optionalAddressEntity.isEmpty(), "The updated address object is not found in the database");
     }
 
     @Test
@@ -199,9 +184,7 @@ class AddressDaoImplTest {
                 assertThrows(PersistenceException.class, () -> addressDao.remove(addressId));
 
         // Then
-        assertTrue(
-                persistenceException.getMessage().contains("constraint"),
-                "Exception after constraint error");
+        assertTrue(persistenceException.getMessage().contains("constraint"), "Exception after constraint error");
     }
 
     @Test
@@ -211,8 +194,7 @@ class AddressDaoImplTest {
 
         // When
         addressDao.remove(addressId);
-        Optional<AddressEntity> optionalAddressEntity =
-                addressDao.findOneById(addressId, getConnection());
+        Optional<AddressEntity> optionalAddressEntity = addressDao.findOneById(addressId, getConnection());
 
         // Then
         assertTrue(optionalAddressEntity.isEmpty(), "After removing by id, nothing was found");
